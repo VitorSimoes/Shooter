@@ -238,6 +238,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 249c022622fab4c56b8e21f685b4501c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cannon: {fileID: 686846615}
+  laser: {fileID: 875706056935157182, guid: 7c5f1469ef7a84f78979b754661709b8, type: 3}
+  shootingTime: 0.1
 --- !u!1 &835721581
 GameObject:
   m_ObjectHideFlags: 0
