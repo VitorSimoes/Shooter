@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 
 public class Ship : MonoBehaviour
-{
+{   
     [SerializeField] private Transform cannon;
     [SerializeField] private GameObject laser;
     [SerializeField] private GameObject laser2;
@@ -14,15 +14,15 @@ public class Ship : MonoBehaviour
     [SerializeField] private GameObject laser8;
     [SerializeField] private GameObject laser9;
     [SerializeField] private GameObject laser10;
+    [SerializeField]private float shootingTime = 0.1f;
+    [SerializeField]private Transform spawnPoint;
 
-
-    public float shootingTime = 0.1f;
     private bool shooting;
-
+    private Animator anim;
     // Start is called before the first frame update
     void Start()
     {
-        
+        anim = GetComponent<Animator>();
     }
 
     // Update is called once per frame
@@ -40,8 +40,25 @@ public class Ship : MonoBehaviour
         );
 
         Vector3 position = transform.position;
+        
         float x = Input.GetAxis("Horizontal");
         float y = Input.GetAxis("Vertical");
+
+
+        //go right
+        if(x > 0)
+            anim.SetBool("tRight",true);
+
+        //go left
+        if(x < 0)
+            anim.SetBool("tLeft",true);
+
+        //reset right left
+        if (x==0)
+        {
+            anim.SetBool("tLeft",false);
+            anim.SetBool("tRight",false);
+        }
 
         position.x += x * 5.0f * Time.deltaTime;
         position.y += y * 5.0f * Time.deltaTime;
@@ -79,6 +96,20 @@ public class Ship : MonoBehaviour
 
         StartCoroutine(Cooldown());
     }
+    void OnCollisionEnter2D(Collision2D other){
+        if(other.gameObject.tag == "Meteoro"){
+            Destroy(other.gameObject);
+            anim.SetBool("isDead",true);
+            StartCoroutine(Respawn(other));
+            anim.SetBool("isDead",false);   
+        }
+    }
+
+    IEnumerator Respawn(Collision2D other){
+        yield return new WaitForSeconds(0.8f);
+        gameObject.transform.position = spawnPoint.transform.position;
+    }
+
 
     IEnumerator Cooldown ()
     {
