@@ -98,16 +98,18 @@ public class Ship : MonoBehaviour
     }
     void OnCollisionEnter2D(Collision2D other){
         if(other.gameObject.tag == "Meteoro"){
-            Destroy(other.gameObject);
-            anim.SetBool("isDead",true);
+
             StartCoroutine(Respawn(other));
-            anim.SetBool("isDead",false);   
+
         }
     }
 
     IEnumerator Respawn(Collision2D other){
+        Destroy(other.gameObject);
+        anim.SetBool("isDead",true);
         yield return new WaitForSeconds(0.8f);
         gameObject.transform.position = spawnPoint.transform.position;
+        anim.SetBool("isDead",false);
     }
 
 
