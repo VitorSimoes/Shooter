@@ -1,5 +1,7 @@
+//using System.Threading.Tasks.Dataflow;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Ship : MonoBehaviour
 {   
@@ -16,9 +18,18 @@ public class Ship : MonoBehaviour
     [SerializeField] private GameObject laser10;
     [SerializeField]private float shootingTime = 0.1f;
     [SerializeField]private Transform spawnPoint;
-
+    
+    [SerializeField]private AudioClip shootSound;
+    [SerializeField]private AudioClip deathSound;
+    private bool canMove = true;
+    private bool canShoot = true;
+    private int lives = 3;
     private bool shooting;
     private Animator anim;
+    public int getLives()
+    {
+        return lives;
+    }
     // Start is called before the first frame update
     void Start()
     {
@@ -43,8 +54,7 @@ public class Ship : MonoBehaviour
         
         float x = Input.GetAxis("Horizontal");
         float y = Input.GetAxis("Vertical");
-
-
+        
         //go right
         if(x > 0)
             anim.SetBool("tRight",true);
@@ -60,11 +70,12 @@ public class Ship : MonoBehaviour
             anim.SetBool("tRight",false);
         }
 
-        position.x += x * 5.0f * Time.deltaTime;
-        position.y += y * 5.0f * Time.deltaTime;
-
-        transform.position = position;
-
+        if(canMove){
+            position.x += x * 5.0f * Time.deltaTime;
+            position.y += y * 5.0f * Time.deltaTime;
+            transform.position = position;
+        }
+        
         float clampX = Mathf.Clamp(transform.position.x, cameraRect.xMin, cameraRect.xMax);
         float clampY = Mathf.Clamp(transform.position.y, cameraRect.yMin, cameraRect.yMax);
 
@@ -86,30 +97,41 @@ public class Ship : MonoBehaviour
 
     void Shot (GameObject laser)
     {
-        if (shooting) return;
+        if (shooting || !canShoot) return;
         shooting = true;
 
         GameObject newShot = Instantiate(laser, cannon.position, cannon.rotation);
+        AudioSource.PlayClipAtPoint(shootSound, transform.position);
         newShot.TryGetComponent(out Rigidbody2D rb);
         rb.AddForce(Vector3.up * 5, ForceMode2D.Impulse);
         Destroy(newShot, 2);
-
         StartCoroutine(Cooldown());
     }
     void OnCollisionEnter2D(Collision2D other){
         if(other.gameObject.tag == "Meteoro"){
-
-            StartCoroutine(Respawn(other));
-
+            if (lives > 0)
+            {
+                lives--;
+                StartCoroutine(Respawn(other));
+            }
+            else
+            {
+                SceneManager.LoadScene(2);
+            }
         }
     }
 
     IEnumerator Respawn(Collision2D other){
         Destroy(other.gameObject);
+        canMove = false;
+        canShoot = false;
         anim.SetBool("isDead",true);
+        AudioSource.PlayClipAtPoint(deathSound, transform.position);
         yield return new WaitForSeconds(0.8f);
         gameObject.transform.position = spawnPoint.transform.position;
         anim.SetBool("isDead",false);
+        canMove = true;
+        canShoot = true;
     }
 
 
